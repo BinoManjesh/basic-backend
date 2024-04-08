@@ -1,36 +1,15 @@
-const http = require("node:http");
-const fs = require("node:fs/promises");
+const path = require("path");
+const express = require("express");
 
-async function writeFile(res, fileName) {
-  const file = await fs.readFile(fileName);
-  res.write(file);
-}
+const app = express();
 
-function getFileName(url) {
-  switch (url) {
-    case "/":
-      return "index.html";
-    case "/about":
-      return "about.html";
-    case "/contact-me":
-      return "contact-me.html";
-    default:
-      return false;
-  }
-}
+const serveFile = (fileName) => (req, res) => {
+  res.sendFile(path.join(__dirname, fileName));
+};
 
-http
-  .createServer(async function (req, res) {
-    let fileName = getFileName(req.url);
-    if (fileName) {
-      res.writeHead(200, { "Content-type": "text/html" });
-    } else {
-      res.writeHead(404, { "Content-type": "text/html" });
-      fileName = "404.html";
-    }
-    await writeFile(res, fileName);
-    res.end();
-  })
-  .listen(8080, () => {
-    console.log("Started server on port 8080");
-  });
+app.get("/", serveFile("index.html"));
+app.get("/about", serveFile("about.html"));
+app.get("/contact-me", serveFile("contact-me.html"));
+app.use(serveFile("404.html"));
+
+app.listen(8000);
